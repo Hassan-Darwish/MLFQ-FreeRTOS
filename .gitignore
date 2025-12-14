@@ -1,0 +1,4 @@
+# ignoring Debug folder
+Debug/
+# ignoring ./settings changes from system to system
+.settings/
