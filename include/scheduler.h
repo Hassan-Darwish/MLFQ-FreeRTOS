@@ -2,6 +2,9 @@
 #define SCHEDULER_H_
 
 #include "FreeRTOS.h"
+#include "tick_profiler.h"
+#include "task.h"
+
 
 typedef enum
 {
@@ -11,13 +14,22 @@ typedef enum
     MLFQ_NUMBER_QUEUES
 }MLFQ_QueueLevel_t;
 
-#define MLFQ_TOP_PRIORITY_NUMBER                5
+typedef struct
+{
+    TickProfilerTaskInfo_t task_info;
+    MLFQ_QueueLevel_t task_level;
+}MLFQ_Task_Profiler_t;
+
+#define MLFQ_TOP_PRIORITY_NUMBER                (5U)
 
 #define MLFQ_TO_RTOS_LEVEL_SETTER(level)        (MLFQ_TOP_PRIORITY_NUMBER - level)
 
 void initScheduler(void);
-void updateTaskPriority(TaskHandle_t task, MLFQ_QueueLevel_t level);
-void checkForDemotion(TaskStats status);
+void schedulerTask(void* pvParam);
+void registerTask(TaskHandle_t task);
+
+void updateTaskPriority(TaskHandle_t task, MLFQ_QueueLevel_t newLevel);
+void checkForDemotion(MLFQ_Task_Profiler_t status);
 void performGlobalBoost(void);
 void promoteInteractiveTask(TaskHandle_t task);
 
