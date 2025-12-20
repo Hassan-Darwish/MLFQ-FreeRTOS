@@ -187,12 +187,13 @@ void schedulerTask(void *pvParam)
         /* Check for expired task notifications */
         if (xQueueReceive(expiredQueue, &xExpiredHandle, 10) == pdTRUE)
         {
-            for (uint8_t i = 0; i < TICK_PROFILER_MAX_TASKS; i++)
+            for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
             {
-                if (g_taskTable[i].task_info.task == xExpiredHandle)
+                if (g_taskTable[table_index].task_info.task == xExpiredHandle)
                 {
                     /* Apply demotion logic */
-                    checkForDemotion(g_taskTable[i]);
+                    checkForDemotion(g_taskTable[table_index]);
+
                     break;
                 }
             }
