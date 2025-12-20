@@ -104,7 +104,7 @@ void promoteInteractiveTask(TaskHandle_t task);
  * Description : Scheduler management task responsible for handling
  *               demotion events and periodic global boosts.
  */
-void schedulerTask(void* pvParam);
+void schedulerTask(void* pvParameters);
 
 #endif /* SCHEDULER_H_ */
 

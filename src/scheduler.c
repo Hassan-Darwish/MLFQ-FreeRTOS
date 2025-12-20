@@ -33,9 +33,9 @@ static MLFQ_Task_Profiler_t g_taskTable[TICK_PROFILER_MAX_TASKS];
 void updateTaskPriority(TaskHandle_t task, MLFQ_QueueLevel_t newLevel)
 {
     /* Iterate through task table to find the matching task */
-    for(uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
+    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        if(g_taskTable[table_index].task_info.task == task)
+        if (g_taskTable[table_index].task_info.task == task)
         {
             /* Update internal MLFQ level */
             g_taskTable[table_index].task_level = newLevel;
@@ -56,7 +56,7 @@ void initScheduler(void)
     tickProfilerInit();
 
     /* Reset all task table entries */
-    for(uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
+    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
         g_taskTable[table_index].task_info.task = NULL;
         g_taskTable[table_index].task_level = MLFQ_QUEUE_HIGH;
@@ -70,12 +70,12 @@ void initScheduler(void)
 void registerTask(TaskHandle_t taskHandle)
 {
     /* Search for an empty slot in the task table */
-    for(uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
+    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        if(g_taskTable[table_index].task_info.task == NULL)
+        if (g_taskTable[table_index].task_info.task == NULL)
         {
             /* Initialize profiling statistics for the task */
-            if(!setupTaskStats(taskHandle))
+            if (!setupTaskStats(taskHandle))
             {
                 break;
             }
@@ -104,12 +104,12 @@ void registerTask(TaskHandle_t taskHandle)
 void checkForDemotion(MLFQ_Task_Profiler_t status)
 {
     /* Locate the task in the task table */
-    for(uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
+    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        if(g_taskTable[table_index].task_info.task == status.task_info.task)
+        if (g_taskTable[table_index].task_info.task == status.task_info.task)
         {
             /* Demote task if it is not already at the lowest level */
-            if(g_taskTable[table_index].task_level != MLFQ_QUEUE_LOW)
+            if (g_taskTable[table_index].task_level != MLFQ_QUEUE_LOW)
             {
                 updateTaskPriority(
                     g_taskTable[table_index].task_info.task,
@@ -126,9 +126,9 @@ void checkForDemotion(MLFQ_Task_Profiler_t status)
 void performGlobalBoost(void)
 {
     /* Iterate through all registered tasks */
-    for(uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
+    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        if(g_taskTable[table_index].task_info.task != NULL)
+        if (g_taskTable[table_index].task_info.task != NULL)
         {
             updateTaskPriority(g_taskTable[table_index].task_info.task,
                                MLFQ_QUEUE_HIGH);
@@ -143,12 +143,12 @@ void performGlobalBoost(void)
 void promoteInteractiveTask(TaskHandle_t task)
 {
     /* Search for the task in the table */
-    for(uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
+    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        if(g_taskTable[table_index].task_info.task == task)
+        if (g_taskTable[table_index].task_info.task == task)
         {
             /* Promote task if possible */
-            if(g_taskTable[table_index].task_level != MLFQ_QUEUE_HIGH)
+            if (g_taskTable[table_index].task_level != MLFQ_QUEUE_HIGH)
             {
                 updateTaskPriority(
                     g_taskTable[table_index].task_info.task,
@@ -163,7 +163,7 @@ void promoteInteractiveTask(TaskHandle_t task)
  *               task demotions based on expired ticks and performing
  *               periodic global priority boosts.
  */
-void schedulerTask(void *pvParam)
+void schedulerTask(void *pvParameters)
 {
     /* Register scheduler task with tick profiler */
     tickProfilerSetSchedulerTaskHandle(xTaskGetCurrentTaskHandle());
