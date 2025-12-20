@@ -66,8 +66,8 @@
  * functionality in the build.  Set to 0 to exclude the hook functionality from the
  * build.  The application writer is responsible for providing the hook function
  * for any set to 1. */
-#define configUSE_IDLE_HOOK                   0
-#define configUSE_TICK_HOOK                   0
+#define configUSE_IDLE_HOOK                   1
+#define configUSE_TICK_HOOK                   1
 
 /******************************************************************************/
 /* ARM Cortex-M Specific Definitions. *****************************************/
@@ -103,3 +103,4 @@ PRIORITY THAN THIS! (higher priorities are lower numeric values. */
 
 
 #endif /* FREERTOS_CONFIG_H */
+
