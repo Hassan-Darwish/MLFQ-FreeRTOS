@@ -23,7 +23,7 @@ static MLFQ_TCB_t g_taskTable[TICK_PROFILER_MAX_TASKS];
 
 /******************************************************************************
  *  STATIC (PRIVATE) FUNCTION DEFINITIONS
- ******************************************************************************/
+ *****************************************************************************-0---*/
 
 /*
  * Description : Returns the time quantum assigned to a specific MLFQ level.
@@ -159,7 +159,7 @@ void performGlobalBoost(void)
 {
     for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        if (g_taskTable[table_index].task_info.task != NULL)
+        if (g_taskTable[table_index].task_handle != NULL)
         {
             updateTaskPriority(g_taskTable[table_index].task_handle,
                                MLFQ_QUEUE_HIGH);
@@ -175,7 +175,7 @@ void promoteInteractiveTask(TaskHandle_t task)
 {
     for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        if (g_taskTable[table_index].task_info.task == task)
+        if (g_taskTable[table_index].task_handle == task)
         {
             if (g_taskTable[table_index].task_level != MLFQ_QUEUE_HIGH)
             {
@@ -213,7 +213,7 @@ void schedulerTask(void *pvParameters)
         {
             for (uint8_t i = 0; i < TICK_PROFILER_MAX_TASKS; i++)
             {
-                if (g_taskTable[i].taskHandle == xExpiredHandle)
+                if (g_taskTable[i].task_handle == xExpiredHandle)
                 {
                     checkForDemotion(i);
                     break;

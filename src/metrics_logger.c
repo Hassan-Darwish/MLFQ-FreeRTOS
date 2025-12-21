@@ -37,14 +37,24 @@ float calculateLatency(uint32_t arrivalTick, uint32_t startTick)
  */
 char *formatStatsLog(MLFQ_Task_Profiler_t stats)
 {
-    if (g_logBuffer == NULL) return;
+    if (g_logBuffer == NULL) return NULL;
+    uint32_t currentTick = xTaskGetTickCount();
+    uint32_t totalTimeAlive = currentTick - stats.arrival_tick;
+    uint32_t waitingTime = 0;
 
+    if(totalTimeAlive > stats.task_info.run_ticks)
+    {
+        waitingTime = totalTimeAlive - stats.task_info.run_ticks;
+    }
+        
     snprintf(g_logBuffer, LOG_BUFFER_SIZE, 
-             "Task: %-10s | Runtime: %5lu ticks | Quantumtime: %5lu ticks | Level: %d\n", 
-             stats.task_info.task, 
-             stats.task_info.run_ticks, 
-             stats.task_info.quantum_ticks,
-             stats.task_level);
+                "%-10s | Lvl: %d | Run: %4lu | Qtm: %2lu | Arr: %5lu | Wait: %4lu\n", 
+                pcTaskGetName(stats.task_info.task), /* Use FreeRTOS helper for name string */
+                stats.task_level,
+                stats.task_info.run_ticks, 
+                stats.task_info.quantum_ticks,
+                stats.arrival_tick,
+                waitingTime);
     // Despite the misleading name, snprintf does not print but rather it saves the output in the mentioned buffer
     
     return g_logBuffer;
@@ -61,7 +71,7 @@ void printQueueReport(void)
     
     // 1. Print Header
     sendLog("\n================ MLFQ QUEUE REPORT ================\n");
-    sendLog("Name        | Runtime (Ticks) | Queue Level\n");
+    sendLog("Name       | Lvl | Run  | Qtm | Arr   | Wait\n");
     sendLog("---------------------------------------------------\n");
 
     // 2. Iterate through all potential slots
@@ -71,10 +81,7 @@ void printQueueReport(void)
         // helper function to fetch stats from scheduler.c
         // Returns true if a valid task exists at this index
         if (schedulerGetTaskStats(i, &currentStats)) 
-        {*
-            // Populate runtime from the public Tick Profiler API
-            currentStats.task_info.run_ticks = getTaskRuntime(currentStats.task_info.task);
-            
+        {
             // Format and Send
             sendLog(formatStatsLog(currentStats));
         }

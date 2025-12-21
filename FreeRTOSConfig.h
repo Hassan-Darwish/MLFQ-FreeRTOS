@@ -37,7 +37,7 @@
 /* configMAX_PRIORITIES Sets the number of available task priorities.  Tasks can
  * be assigned priorities of 0 to (configMAX_PRIORITIES - 1).  Zero is the lowest
  * priority. */
-#define configMAX_PRIORITIES                  (5)
+#define configMAX_PRIORITIES                  (10)
 
 /* Set configUSE_PREEMPTION to 1 to use pre-emptive scheduling. Set
  * configUSE_PREEMPTION to 0 to use co-operative scheduling. */
@@ -56,7 +56,7 @@
  * or heap_4.c are included in the build. This value is defaulted to 4096 bytes but
  * it must be tailored to each application. Note the heap will appear in the .bss
  * section. */
-#define configTOTAL_HEAP_SIZE                 ((size_t)(4096))
+#define configTOTAL_HEAP_SIZE                 ((size_t)(20480))
 
 /******************************************************************************/
 /* Hook and callback function related definitions. ****************************/
@@ -66,7 +66,7 @@
  * functionality in the build.  Set to 0 to exclude the hook functionality from the
  * build.  The application writer is responsible for providing the hook function
  * for any set to 1. */
-#define configUSE_IDLE_HOOK                   1
+#define configUSE_IDLE_HOOK                   0
 #define configUSE_TICK_HOOK                   1
 
 /******************************************************************************/
@@ -101,6 +101,8 @@ PRIORITY THAN THIS! (higher priorities are lower numeric values. */
 /* Normal assert() semantics without relying on the provision of an assert.h header file. */
 #define configASSERT( x ) if( ( x ) == 0 ) { taskDISABLE_INTERRUPTS(); for( ;; ); }
 
+#define INCLUDE_vTaskDelay          1
+#define INCLUDE_vTaskPrioritySet    1
 
 #endif /* FREERTOS_CONFIG_H */
 

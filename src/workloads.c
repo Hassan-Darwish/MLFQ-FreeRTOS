@@ -14,8 +14,9 @@
 #include "workloads.h"
 
 /* FreeRTOS task management */
-#include "task.h"
 #include "FreeRTOS.h"
+#include "task.h"
+
 
 /* Standard integer types */
 #include <stdint.h>

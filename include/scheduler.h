@@ -118,7 +118,7 @@ void registerTask(TaskHandle_t task);
 /*
  * Description : Demotes a task after it exhausts its time quantum.
  */
-void checkForDemotion(MLFQ_Task_Profiler_t status);
+void checkForDemotion(uint8_t table_index);
 
 /*
  * Description : Performs a global priority boost to prevent starvation.
