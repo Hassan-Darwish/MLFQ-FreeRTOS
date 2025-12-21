@@ -56,7 +56,7 @@
  * or heap_4.c are included in the build. This value is defaulted to 4096 bytes but
  * it must be tailored to each application. Note the heap will appear in the .bss
  * section. */
-#define configTOTAL_HEAP_SIZE                 ((size_t)(20480))
+#define configTOTAL_HEAP_SIZE                 ((size_t)(16384))
 
 /******************************************************************************/
 /* Hook and callback function related definitions. ****************************/
@@ -103,6 +103,7 @@ PRIORITY THAN THIS! (higher priorities are lower numeric values. */
 
 #define INCLUDE_vTaskDelay          1
 #define INCLUDE_vTaskPrioritySet    1
+
 
 #endif /* FREERTOS_CONFIG_H */
 

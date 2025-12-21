@@ -77,7 +77,7 @@ typedef struct
 #define MLFQ_TO_RTOS_LEVEL_SETTER(level)        (MLFQ_TOP_PRIORITY_NUMBER - level)
 
 /* Periodic priority boost interval (milliseconds) */
-#define MLFQ_BOOST_PERIOD_MS                    500
+#define MLFQ_BOOST_PERIOD_MS                    1000U
 
 /* Time slice values assigned per queue level (ticks) */
 #define MLFQ_TIME_SLICE_HIGH                    10U

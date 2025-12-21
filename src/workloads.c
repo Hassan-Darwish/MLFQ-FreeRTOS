@@ -46,7 +46,7 @@ void runInteractiveTask(void *pvParameters)
     volatile uint8_t mathCalculation = 0;
 
     /* Task name passed as parameter (unused except for identification) */
-    const char *taskName = (char *)pvParameters;
+    volatile const char *taskName = (char *)pvParameters;
 
     /* Task execution loop */
     for (;;)
@@ -67,24 +67,30 @@ void runInteractiveTask(void *pvParameters)
  *               long computations before yielding execution,
  *               simulating CPU-bound behavior.
  */
+/* workloads.c */
+
+/* workloads.c */
+
 void runCPUHeavyTask(void *pvParameters)
 {
-    /* Variable used to simulate heavy computation */
-    volatile uint16_t mathCalculation = 0;
-
-    /* Task name passed as parameter (unused except for identification) */
+    volatile uint32_t mathCalculation = 0;
     const char *taskname = (char*) pvParameters;
 
-    /* Task execution loop */
     for (;;)
     {
-        /* Simulated heavy computation workload */
-        for (uint16_t task_loop = 0; task_loop < HEAVY_TASK_TIME; task_loop++)
+        /* INCREASED LOAD:
+         * 100 iterations * ~1ms = ~100ms of CPU time.
+         * This ensures it breaks the 10ms limit AND the 20ms limit.
+         */
+        for (uint32_t i = 0; i < 1000; i++) // <--- CHANGE THIS FROM 20 TO 100
         {
-            mathCalculation++;
+            for (uint32_t task_loop = 0; task_loop < HEAVY_TASK_TIME; task_loop++)
+            {
+                mathCalculation++;
+            }
         }
 
-        /* Simulate blocking behavior */
+        /* Now yield */
         simulateBlocking();
     }
 }

@@ -140,13 +140,11 @@ void checkForDemotion(uint8_t table_index)
 
     if(currentLevel < MLFQ_QUEUE_LOW)
     {
-        updateTaskPriority(task,
-            (MLFQ_QueueLevel_t)(MLFQ_TO_RTOS_LEVEL_SETTER(currentLevel + 1)));
+        updateTaskPriority(task, (MLFQ_QueueLevel_t)(currentLevel + 1));
     }
     else
     {
-        updateTaskPriority(task,
-            (MLFQ_QueueLevel_t)(MLFQ_QUEUE_LOW));
+        updateTaskPriority(task, MLFQ_QUEUE_LOW);
     }
 }
 
@@ -225,8 +223,10 @@ void schedulerTask(void *pvParameters)
         TickType_t xNow = xTaskGetTickCount();
         if ((xNow - xLastBoostTime) >= xBoostPeriod)
         {
-            performGlobalBoost();
             printQueueReport();
+
+            performGlobalBoost();
+
             xLastBoostTime = xNow;
         }
 
