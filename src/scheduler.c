@@ -1,95 +1,69 @@
-/******************************************************************************
- *  MODULE NAME  : MLFQ Scheduler
- *  FILE         : scheduler.c
- *  DESCRIPTION  : Implements a Multi-Level Feedback Queue (MLFQ) scheduler
- *                 on top of FreeRTOS, handling task registration, promotion,
- *                 demotion, and periodic priority boosting.
- *  AUTHOR       : Hassan Darwish
- *  Date         : December 2025
- ******************************************************************************/
-
-/******************************************************************************
- *  INCLUDES
- ******************************************************************************/
 #include "scheduler.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-/******************************************************************************
- *  STATIC (PRIVATE) VARIABLES
- ******************************************************************************/
-/* Table holding task profiling information and current MLFQ level */
-static MLFQ_Task_Profiler_t g_taskTable[TICK_PROFILER_MAX_TASKS];
+static MLFQ_TCB_t g_taskTable[TICK_PROFILER_MAX_TASKS];
 
-/******************************************************************************
- *  FUNCTION DEFINITIONS
- ******************************************************************************/
+static uint32_t getQuantumForLevel(MLFQ_QueueLevel_t level)
+{
+    switch(level) {
+        case MLFQ_QUEUE_HIGH:   return MLFQ_TIME_SLICE_HIGH;
+        case MLFQ_QUEUE_MEDIUM: return MLFQ_TIME_SLICE_MEDIUM;
+        case MLFQ_QUEUE_LOW:    return MLFQ_TIME_SLICE_LOW;
+        default:                return MLFQ_TIME_SLICE_LOW;
+    }
+}
 
-/*
- * Description : Updates the priority of a given task based on the new
- *               MLFQ queue level and applies the corresponding RTOS priority.
- */
 void updateTaskPriority(TaskHandle_t task, MLFQ_QueueLevel_t newLevel)
 {
-    /* Iterate through task table to find the matching task */
     for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        if (g_taskTable[table_index].task_info.task == task)
+        if (g_taskTable[table_index].task_handle == task)
         {
-            /* Update internal MLFQ level */
             g_taskTable[table_index].task_level = newLevel;
 
-            /* Update RTOS task priority */
             vTaskPrioritySet(task, MLFQ_TO_RTOS_LEVEL_SETTER(newLevel));
+
+            setTaskQuantum(task, getQuantumForLevel(newLevel));
+            resetTaskRuntime(task);
         }
     }
 }
 
-/*
- * Description : Initializes the scheduler subsystem by initializing
- *               the tick profiler and clearing the task table.
- */
+
 void initScheduler(void)
 {
-    /* Initialize tick profiling mechanism */
     tickProfilerInit();
 
-    /* Reset all task table entries */
     for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        g_taskTable[table_index].task_info.task = NULL;
+        g_taskTable[table_index].task_handle = NULL;
         g_taskTable[table_index].task_level = MLFQ_QUEUE_HIGH;
+        g_taskTable[table_index].arrival_tick = 0;
     }
 }
 
-/*
- * Description : Registers a new task in the scheduler task table
- *               and assigns it the highest priority queue.
- */
+
 void registerTask(TaskHandle_t taskHandle)
 {
-    /* Search for an empty slot in the task table */
     for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
-        if (g_taskTable[table_index].task_info.task == NULL)
+        if (g_taskTable[table_index].task_handle == NULL)
         {
-            /* Initialize profiling statistics for the task */
             if (!setupTaskStats(taskHandle))
             {
                 break;
             }
             else
             {
-                /* Store task handle */
-                g_taskTable[table_index].task_info.task = taskHandle;
-
-                /* Assign highest MLFQ level */
+                g_taskTable[table_index].task_handle = taskHandle;
                 g_taskTable[table_index].task_level = MLFQ_QUEUE_HIGH;
+                g_taskTable[table_index].arrival_tick = xTaskGetTickCount();
 
-                /* Apply RTOS priority */
                 vTaskPrioritySet(taskHandle,
                                  MLFQ_TO_RTOS_LEVEL_SETTER(MLFQ_QUEUE_HIGH));
+                setTaskQuantum(taskHandle, MLFQ_TIME_SLICE_HIGH);
 
                 break;
             }
@@ -97,119 +71,108 @@ void registerTask(TaskHandle_t taskHandle)
     }
 }
 
-/*
- * Description : Checks whether a task should be demoted to a lower
- *               priority queue based on its execution behavior.
- */
-void checkForDemotion(MLFQ_Task_Profiler_t status)
+
+void checkForDemotion(uint8_t table_index)
 {
-    /* Locate the task in the task table */
-    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
+    TaskHandle_t task = g_taskTable[table_index].task_handle;
+    MLFQ_QueueLevel_t currentLevel = g_taskTable[table_index].task_level;
+
+    if(currentLevel < MLFQ_QUEUE_LOW)
     {
-        if (g_taskTable[table_index].task_info.task == status.task_info.task)
-        {
-            /* Demote task if it is not already at the lowest level */
-            if (g_taskTable[table_index].task_level != MLFQ_QUEUE_LOW)
-            {
-                updateTaskPriority(
-                    g_taskTable[table_index].task_info.task,
-                    (MLFQ_QueueLevel_t)(g_taskTable[table_index].task_level + 1));
-            }
-        }
+        updateTaskPriority(task, (MLFQ_QueueLevel_t)(MLFQ_TO_RTOS_LEVEL_SETTER(currentLevel+1)));
+    }
+    else
+    {
+        updateTaskPriority(task,(MLFQ_QueueLevel_t)(MLFQ_QUEUE_LOW));
     }
 }
 
-/*
- * Description : Performs a global priority boost by moving all
- *               registered tasks back to the highest queue.
- */
+
 void performGlobalBoost(void)
 {
-    /* Iterate through all registered tasks */
     for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
         if (g_taskTable[table_index].task_info.task != NULL)
         {
-            updateTaskPriority(g_taskTable[table_index].task_info.task,
+            updateTaskPriority(g_taskTable[table_index].task_handle,
                                MLFQ_QUEUE_HIGH);
         }
     }
 }
 
-/*
- * Description : Promotes an interactive task to a higher priority
- *               queue if it is not already at the top level.
- */
+
 void promoteInteractiveTask(TaskHandle_t task)
 {
-    /* Search for the task in the table */
     for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
     {
         if (g_taskTable[table_index].task_info.task == task)
         {
-            /* Promote task if possible */
             if (g_taskTable[table_index].task_level != MLFQ_QUEUE_HIGH)
             {
                 updateTaskPriority(
-                    g_taskTable[table_index].task_info.task,
+                    g_taskTable[table_index].task_handle,
                     (MLFQ_QueueLevel_t)(g_taskTable[table_index].task_level - 1));
             }
         }
     }
 }
 
-/*
- * Description : Scheduler management task responsible for handling
- *               task demotions based on expired ticks and performing
- *               periodic global priority boosts.
- */
+
 void schedulerTask(void *pvParameters)
 {
-    /* Register scheduler task with tick profiler */
     tickProfilerSetSchedulerTaskHandle(xTaskGetCurrentTaskHandle());
-
-    /* Get queue of expired tasks */
     QueueHandle_t expiredQueue = tickProfilerGetExpiredQueue();
-
-    /* Handle for expired task */
     TaskHandle_t xExpiredHandle = NULL;
-
-    /* Track last global boost time */
     TickType_t xLastBoostTime = xTaskGetTickCount();
+    const TickType_t xBoostPeriod = pdMS_TO_TICKS(MLFQ_BOOST_PERIOD_MS);
 
-    /* Global boost interval */
-    const TickType_t xBoostPeriod =
-        pdMS_TO_TICKS(MLFQ_BOOST_PERIOD_MS);
-
-    /* Scheduler loop */
     for (;;)
     {
-        /* Check for expired task notifications */
-        if (xQueueReceive(expiredQueue, &xExpiredHandle, 10) == pdTRUE)
-        {
-            for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
-            {
-                if (g_taskTable[table_index].task_info.task == xExpiredHandle)
-                {
-                    /* Apply demotion logic */
-                    checkForDemotion(g_taskTable[table_index]);
+        /* Wait for Notification from Profiler (Hook) */
+        ulTaskNotifyTake(pdTRUE, 1); // Optional: Check notification
 
+        /* Check Expired Queue */
+        while (xQueueReceive(expiredQueue, &xExpiredHandle, 0) == pdTRUE)
+        {
+            for (uint8_t i = 0; i < TICK_PROFILER_MAX_TASKS; i++)
+            {
+                if (g_taskTable[i].taskh_handle == xExpiredHandle)
+                {
+                    checkForDemotion(i); /* Pass index, not copy */
                     break;
                 }
             }
         }
 
-        /* Check if it is time for a global boost */
+        /* Check Global Boost */
         TickType_t xNow = xTaskGetTickCount();
-
         if ((xNow - xLastBoostTime) >= xBoostPeriod)
         {
             performGlobalBoost();
             xLastBoostTime = xNow;
         }
-    }
+
+        /* Yield to let others run if nothing happened */
+        vTaskDelay(1);
 }
 
-/******************************************************************************
- *  END OF FILE
- ******************************************************************************/
+
+    bool schedulerGetTaskStats(uint32_t index, MLFQ_Task_Profiler_t *output)
+    {
+        if (index >= TICK_PROFILER_MAX_TASKS || g_taskTable[index].task_handle == NULL)
+        {
+            return false;
+        }
+
+        output->task_info.task  = g_taskTable[index].task_handle;
+        output->task_level      = g_taskTable[index].task_level;
+        output->arrival_tick    = g_taskTable[index].arrival_tick;
+
+        /* 2. Copy info from Profiler (Live Stats) */
+        /* Note: We call the Profiler directly here so the Logger doesn't have to */
+        output->task_info.run_ticks     = getTaskRuntime(output->task_info.task);
+        output->task_info.quantum_ticks = getQuantumForLevel(output->task_level);
+
+        return true;
+    }
+
