@@ -8,14 +8,14 @@ An advanced, dynamic scheduling algorithm implemented on top of the FreeRTOS ker
 
 ## 📖 Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Key Features](#key-features)
-3. [System Architecture](#system-architecture)
-4. [Hardware Setup](#hardware-setup)
-5. [Configuration](#configuration)
-6. [Performance Analysis](#performance-analysis)
-7. [File Structure](#file-structure)
-8. [Credits](#credits)
+1. Project Overview
+2. Key Features
+3. System Architecture
+4. Hardware Setup
+5. Configuration
+6. Performance Analysis
+7. File Structure
+8. Credits
 
 ---
 
