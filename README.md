@@ -124,22 +124,6 @@ A/B Test comparing Standard FreeRTOS vs. MLFQ implementation.
 
 ---
 
-# 📂 File Structure
-
-```
-/src
-├── main.c              # Entry point & Test Runner
-├── scheduler.c         # MLFQ Core Logic (Demotion, Promotion, Tables)
-├── scheduler.h         # Configuration & Defines
-├── drivers.c           # Tiva-C UART & GPIO Drivers
-├── workloads.c         # Simulated Tasks (CPU Heavy vs Interactive)
-├── metrics_logger.c    # Stats formatting helpers
-├── FreeRTOSConfig.h    # Kernel configuration
-└── startup_tm4c.c      # Startup code & Interrupt Vectors
-```
-
----
-
 # 👥 Credits
 
 **Development Team**
