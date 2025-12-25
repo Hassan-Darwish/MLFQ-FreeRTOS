@@ -14,8 +14,7 @@ An advanced, dynamic scheduling algorithm implemented on top of the FreeRTOS ker
 4. Hardware Setup
 5. Configuration
 6. Performance Analysis
-7. File Structure
-8. Credits
+7. Credits
 
 ---
 
