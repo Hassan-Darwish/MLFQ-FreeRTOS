@@ -11,12 +11,12 @@
  *  INCLUDES
  ******************************************************************************/
 #include "drivers.h"
-#include "TivaWare/inc/hw_memmap.h"
-#include "TivaWare/inc/hw_types.h"
-#include "TivaWare/inc/sysctl.h"
-#include "TivaWare/inc/gpio.h"
-#include "TivaWare/inc/uart.h"
-#include "TivaWare/inc/pin_map.h"
+#include "TivaWare/driverlib/hw_memmap.h"
+#include "TivaWare/driverlib/hw_types.h"
+#include "TivaWare/driverlib/sysctl.h"
+#include "TivaWare/driverlib/gpio.h"
+#include "TivaWare/driverlib/uart.h"
+#include "TivaWare/driverlib/pin_map.h"
 
 /******************************************************************************
  *  FUNCTION DEFINITIONS

@@ -3,7 +3,7 @@
  * FILE         : main.c
  * DESCRIPTION  : Entry point for the MLFQ Scheduler project. Initializes
  * drivers, creates workload tasks, and starts the scheduler.
- * AUTHOR       : User
+ * AUTHOR       : Hassan Darwish
  * DATE         : December 2025
  ******************************************************************************/
 
@@ -38,9 +38,7 @@ TaskHandle_t hSchedulerTask     = NULL;
 
 int main(void)
 {
-    /* ---------------------------------------------------------------------
-     * 1. Hardware Initialization
-     * --------------------------------------------------------------------- */
+
     /* Initialize UART for logging (Baud: 115200) */
     initUART();
 
@@ -49,20 +47,13 @@ int main(void)
 
     /* Send boot banner */
     sendLog("\n\n");
-    sendLog("************************************************\n");
-    sendLog("* MLFQ SCHEDULER PROJECT START          *\n");
-    sendLog("* Target: Tiva-C (TM4C123G)             *\n");
-    sendLog("************************************************\n");
+    sendLog("************************************************\r\n");
+    sendLog("* MLFQ SCHEDULER PROJECT START          *\r\n");
+    sendLog("* Target: Tiva-C (TM4C123G)             *\r\n");
+    sendLog("************************************************\r\n");
 
-    /* ---------------------------------------------------------------------
-     * 2. Scheduler Subsystem Initialization
-     * --------------------------------------------------------------------- */
     /* Initialize internal tables and Tick Profiler */
     initScheduler();
-
-    /* ---------------------------------------------------------------------
-     * 3. User Task Creation (Simulated Workloads)
-     * --------------------------------------------------------------------- */
 
     /* TASK 1: Interactive (Should stay High Priority / Green LED) */
     xTaskCreate(runInteractiveTask,         /* Function */
@@ -96,20 +87,14 @@ int main(void)
                 MLFQ_TOP_PRIORITY_NUMBER,
                 &hTask4_Interactive);
 
-    /* ---------------------------------------------------------------------
-     * 4. Register Tasks with MLFQ Scheduler
-     * --------------------------------------------------------------------- */
     /* This tells the scheduler to start tracking these tasks' runtimes */
     registerTask(hTask1_Interactive);
     registerTask(hTask2_Heavy);
     registerTask(hTask3_Heavy);
     registerTask(hTask4_Interactive);
 
-    sendLog("[System] Workload tasks created and registered.\n");
+    sendLog("[System] Workload tasks created and registered.\r\n");
 
-    /* ---------------------------------------------------------------------
-     * 5. Create Management Tasks
-     * --------------------------------------------------------------------- */
     /* * Scheduler Task: Manages Demotion and Global Boosts.
      * PRIORITY: Must be higher than the highest MLFQ queue so it can interrupt!
      * STACK: Large (512 or 1024) because it calls printQueueReport() -> snprintf().
@@ -124,7 +109,7 @@ int main(void)
     /* ---------------------------------------------------------------------
      * 6. Start the Kernel
      * --------------------------------------------------------------------- */
-    sendLog("[System] Starting FreeRTOS Scheduler...\n");
+    sendLog("[System] Starting FreeRTOS Scheduler...\r\n");
 
     /* Set LED to White (All On) briefly to indicate start */
     // Note: You can add a specific LED pattern here if desired
@@ -137,9 +122,6 @@ int main(void)
     }
 }
 
-/* ---------------------------------------------------------------------
- * Optional: Stack Overflow Hook for Debugging
- * --------------------------------------------------------------------- */
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
 {
     /* If we get here, a task used too much stack. */
@@ -149,7 +131,7 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
     /* Try to print (might fail if UART stack is gone) */
     sendLog("\n[CRITICAL] Stack Overflow detected in task: ");
     sendLog(pcTaskName);
-    sendLog("\n");
+    sendLog("\r\n");
 
     for(;;);
 }

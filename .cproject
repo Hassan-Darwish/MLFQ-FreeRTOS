@@ -50,7 +50,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WRAP.671945803" name="Wrap diagnostic messages (--diag_wrap) [deprecated]" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WRAP" useByScannerDiscovery="false" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WRAP.off" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.INCLUDE_PATH.1861385023" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}"/>
-									<listOptionValue builtIn="false" value="C:\ti\TivaWare_C_Series-2.2.0.29"/>
+									<listOptionValue builtIn="false" value="${PROJECT_ROOT}/TivaWare/driverlib/"/>
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}{include}/AUTOSAR31"/>
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}/include"/>
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}/Third_Party/FreeRTOS/Source/include"/>
@@ -79,7 +79,7 @@
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.LIBRARY.1411403688" name="Include library file or command file as input (--library, -l)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.LIBRARY" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="libc.a"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\hassa\OneDrive\Documents\Programming\C\Embedded Diplomas\Advanced Embedded Diploma\RTOS\Seat-Heating-Controller\FreeRTOS_WS\RTOS_Project\driverlib\ccs\Debug\driverlib.lib&quot;"/>
+									<listOptionValue builtIn="false" value="${PROJECT_ROOT}/TivaWare/driverlib/ccs/Debug/driverlib.lib"/>
 								</option>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD_SRCS.159817613" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD2_SRCS.1560655781" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD2_SRCS"/>
@@ -89,7 +89,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="TivaWare" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/main.c|TivaWare/driverlib/watchdog.c|TivaWare/driverlib/usb.c|TivaWare/driverlib/udma.c|TivaWare/driverlib/uart.c|TivaWare/driverlib/timer.c|TivaWare/driverlib/systick.c|TivaWare/driverlib/sysexc.c|TivaWare/driverlib/sysctl.c|TivaWare/driverlib/sw_crc.c|TivaWare/driverlib/ssi.c|TivaWare/driverlib/shamd5.c|TivaWare/driverlib/qei.c|TivaWare/driverlib/pwm.c|TivaWare/driverlib/onewire.c|TivaWare/driverlib/mpu.c|TivaWare/driverlib/lcd.c|TivaWare/driverlib/interrupt.c|TivaWare/driverlib/i2c.c|TivaWare/driverlib/hibernate.c|TivaWare/driverlib/gpio.c|TivaWare/driverlib/fpu.c|TivaWare/driverlib/flash.c|TivaWare/driverlib/epi.c|TivaWare/driverlib/emac.c|TivaWare/driverlib/eeprom.c|TivaWare/driverlib/des.c|TivaWare/driverlib/crc.c|TivaWare/driverlib/cpu.c|TivaWare/driverlib/comp.c|TivaWare/driverlib/can.c|TivaWare/driverlib/aes.c|TivaWare/driverlib/adc.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -173,7 +173,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="TivaWare" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

@@ -67,7 +67,7 @@ void updateTaskPriority(TaskHandle_t task, MLFQ_QueueLevel_t newLevel)
             resetTaskRuntime(task);
 
             /* Visual indication of task level */
-            setLEDColor(newLevel);
+            //setLEDColor(newLevel);
             return;
         }
     }
@@ -223,7 +223,7 @@ void schedulerTask(void *pvParameters)
         TickType_t xNow = xTaskGetTickCount();
         if ((xNow - xLastBoostTime) >= xBoostPeriod)
         {
-            printQueueReport();
+            //printQueueReport();
 
             performGlobalBoost();
 

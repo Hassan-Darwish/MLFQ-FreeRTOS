@@ -2,3 +2,5 @@
 Debug/
 # ignoring ./settings changes from system to system
 .settings/
+# ignoring launches folder
+.launches/

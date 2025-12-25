@@ -1,26 +1,46 @@
+/******************************************************************************
+ *  MODULE NAME  : Tick Profiler
+ *  FILE         : tick_profiler.c
+ *  DESCRIPTION  : Implements a lightweight runtime profiling mechanism for
+ *                 FreeRTOS tasks. Tracks execution ticks, enforces time
+ *                 quanta, and notifies the scheduler upon quantum expiration.
+ *  AUTHOR       : Elham Karam
+ *  Date         : December 2025
+ ******************************************************************************/
 
+/******************************************************************************
+ *  INCLUDES
+ ******************************************************************************/
 #include "tick_profiler.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-#include "portmacro.h"   /* portYIELD_FROM_ISR() */
-#include <string.h>      /* memset */
+#include "portmacro.h"
+#include <string.h>
 
-
-
-/* ---------------- Private Data ---------------- */
+/******************************************************************************
+ *  STATIC (PRIVATE) VARIABLES
+ ******************************************************************************/
+/* Table holding runtime statistics for all tracked tasks */
 static TickProfilerTaskInfo_t g_taskTable[TICK_PROFILER_MAX_TASKS];
 
+/* Queue used to notify scheduler of expired task quanta (optional) */
 #if (TICK_PROFILER_EXPIRED_QUEUE_ENABLED == 1U)
 static QueueHandle_t g_expiredQueue = NULL;
 #endif
 
+/* Handle of the scheduler task to be notified from ISR */
 static TaskHandle_t g_schedulerTaskHandle = NULL;
 
-/* ---------------- Private Helpers ---------------- */
+/******************************************************************************
+ *  STATIC (PRIVATE) FUNCTION DEFINITIONS
+ ******************************************************************************/
 
-/* Find task index, returns -1 if not found */
+/*
+ * Description : Finds the index of a task inside the profiler table.
+ *               Returns -1 if the task is not found or invalid.
+ */
 static int32_t findTaskIndex(TaskHandle_t task)
 {
     if (task == NULL) {
@@ -35,7 +55,10 @@ static int32_t findTaskIndex(TaskHandle_t task)
     return -1;
 }
 
-/* Find empty slot, returns -1 if none */
+/*
+ * Description : Finds the first available empty slot in the task table.
+ *               Returns -1 if the table is full.
+ */
 static int32_t findEmptySlot(void)
 {
     for (uint32_t i = 0U; i < TICK_PROFILER_MAX_TASKS; ++i) {
@@ -46,12 +69,18 @@ static int32_t findEmptySlot(void)
     return -1;
 }
 
-/* ---------------- Public API ---------------- */
+/******************************************************************************
+ *  FUNCTION DEFINITIONS
+ ******************************************************************************/
 
+/*
+ * Description : Initializes the tick profiler subsystem.
+ *               Clears the task table, resets scheduler linkage,
+ *               and creates the expired-quantum queue if enabled.
+ */
 bool tickProfilerInit(void)
 {
-    /* Usually called before scheduler starts, so critical section is optional.
-       Keeping it safe anyway. */
+    /* Protect shared data during initialization */
     taskENTER_CRITICAL();
     {
         memset(g_taskTable, 0, sizeof(g_taskTable));
@@ -60,9 +89,11 @@ bool tickProfilerInit(void)
     taskEXIT_CRITICAL();
 
 #if (TICK_PROFILER_EXPIRED_QUEUE_ENABLED == 1U)
-    /* Create queue (task context). */
-    g_expiredQueue = xQueueCreate((UBaseType_t)TICK_PROFILER_EXPIRED_QUEUE_LENGTH,
-                                  (UBaseType_t)sizeof(TaskHandle_t));
+    /* Create queue for expired task notifications */
+    g_expiredQueue = xQueueCreate(
+        (UBaseType_t)TICK_PROFILER_EXPIRED_QUEUE_LENGTH,
+        (UBaseType_t)sizeof(TaskHandle_t));
+
     if (g_expiredQueue == NULL) {
         return false;
     }
@@ -71,6 +102,11 @@ bool tickProfilerInit(void)
     return true;
 }
 
+/*
+ * Description : Registers a task with the profiler.
+ *               Allocates a table entry and initializes
+ *               runtime and quantum counters.
+ */
 bool setupTaskStats(TaskHandle_t task)
 {
     if (task == NULL) {
@@ -79,27 +115,32 @@ bool setupTaskStats(TaskHandle_t task)
 
     taskENTER_CRITICAL();
     {
-        /* Already registered? */
+        /* Prevent duplicate registration */
         if (findTaskIndex(task) >= 0) {
             taskEXIT_CRITICAL();
             return false;
         }
 
+        /* Find empty slot */
         int32_t slot = findEmptySlot();
         if (slot < 0) {
             taskEXIT_CRITICAL();
-            return false; /* table full */
+            return false;
         }
 
+        /* Initialize task statistics */
         g_taskTable[slot].task = task;
         g_taskTable[slot].run_ticks = 0U;
-        g_taskTable[slot].quantum_ticks = 0U; /* scheduler will set */
+        g_taskTable[slot].quantum_ticks = 0U;
     }
     taskEXIT_CRITICAL();
 
     return true;
 }
 
+/*
+ * Description : Assigns a time quantum (in ticks) to a task.
+ */
 bool setTaskQuantum(TaskHandle_t task, uint32_t quantumTicks)
 {
     if (task == NULL || quantumTicks == 0U) {
@@ -113,6 +154,7 @@ bool setTaskQuantum(TaskHandle_t task, uint32_t quantumTicks)
             taskEXIT_CRITICAL();
             return false;
         }
+
         g_taskTable[idx].quantum_ticks = quantumTicks;
     }
     taskEXIT_CRITICAL();
@@ -120,6 +162,10 @@ bool setTaskQuantum(TaskHandle_t task, uint32_t quantumTicks)
     return true;
 }
 
+/*
+ * Description : Returns the accumulated runtime (in ticks)
+ *               of the specified task.
+ */
 uint32_t getTaskRuntime(TaskHandle_t task)
 {
     if (task == NULL) {
@@ -140,6 +186,9 @@ uint32_t getTaskRuntime(TaskHandle_t task)
     return runtime;
 }
 
+/*
+ * Description : Resets the runtime counter of a task.
+ */
 bool resetTaskRuntime(TaskHandle_t task)
 {
     if (task == NULL) {
@@ -153,6 +202,7 @@ bool resetTaskRuntime(TaskHandle_t task)
             taskEXIT_CRITICAL();
             return false;
         }
+
         g_taskTable[idx].run_ticks = 0U;
     }
     taskEXIT_CRITICAL();
@@ -160,6 +210,11 @@ bool resetTaskRuntime(TaskHandle_t task)
     return true;
 }
 
+/*
+ * Description : Registers the scheduler task handle.
+ *               Used to notify the scheduler from ISR
+ *               when task quanta expire.
+ */
 void tickProfilerSetSchedulerTaskHandle(TaskHandle_t schedulerHandle)
 {
     taskENTER_CRITICAL();
@@ -169,6 +224,10 @@ void tickProfilerSetSchedulerTaskHandle(TaskHandle_t schedulerHandle)
     taskEXIT_CRITICAL();
 }
 
+/*
+ * Description : Returns the queue used to report expired
+ *               task quanta to the scheduler.
+ */
 QueueHandle_t tickProfilerGetExpiredQueue(void)
 {
 #if (TICK_PROFILER_EXPIRED_QUEUE_ENABLED == 1U)
@@ -178,14 +237,11 @@ QueueHandle_t tickProfilerGetExpiredQueue(void)
 #endif
 }
 
-/* ---------------- FreeRTOS Tick Hook ----------------
- * Called from SysTick ISR when configUSE_TICK_HOOK == 1
- *
- * - Increment runtime of currently running task (if registered)
- * - If quantum is set and expired:
- *   - push TaskHandle_t into expired queue (FromISR) if enabled
- *   - notify scheduler task (FromISR)
- * - Yield from ISR if needed
+/*
+ * Description : FreeRTOS tick hook.
+ *               Executes on every system tick interrupt.
+ *               Updates runtime counters, checks for quantum
+ *               expiration, and notifies the scheduler.
  */
 void vApplicationTickHook(void)
 {
@@ -199,27 +255,39 @@ void vApplicationTickHook(void)
     for (uint32_t i = 0U; i < TICK_PROFILER_MAX_TASKS; ++i) {
         if (g_taskTable[i].task == current) {
 
-            /* Increment run_ticks (Cortex-M4: aligned 32-bit access is atomic) */
+            /* Increment runtime counter */
             g_taskTable[i].run_ticks++;
 
-            /* Check expiry only if quantum configured */
+            /* Check for quantum expiration */
             if ((g_taskTable[i].quantum_ticks != 0U) &&
                 (g_taskTable[i].run_ticks >= g_taskTable[i].quantum_ticks))
             {
 #if (TICK_PROFILER_EXPIRED_QUEUE_ENABLED == 1U)
+                /* Notify scheduler via queue */
                 if (g_expiredQueue != NULL) {
-                    (void)xQueueSendFromISR(g_expiredQueue, &current, &xHigherPriorityTaskWoken);
+                    (void)xQueueSendFromISR(
+                        g_expiredQueue,
+                        &current,
+                        &xHigherPriorityTaskWoken);
                 }
 #endif
 
+                /* Direct scheduler notification */
                 if (g_schedulerTaskHandle != NULL) {
-                    (void)vTaskNotifyGiveFromISR(g_schedulerTaskHandle, &xHigherPriorityTaskWoken);
+                    (void)vTaskNotifyGiveFromISR(
+                        g_schedulerTaskHandle,
+                        &xHigherPriorityTaskWoken);
                 }
             }
 
-            break; /* found task */
+            break;
         }
     }
 
+    /* Perform context switch if required */
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
+
+/******************************************************************************
+ *  END OF FILE
+ ******************************************************************************/

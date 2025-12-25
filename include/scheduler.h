@@ -5,6 +5,7 @@
  *                 scheduler. Defines queue levels, task control blocks,
  *                 configuration macros, and scheduler APIs.
  *  AUTHOR       : Hassan Darwish
+ *  Date         : December 2025
  ******************************************************************************/
 
 #ifndef SCHEDULER_H_

@@ -1,3 +1,11 @@
+/******************************************************************************
+ *  MODULE NAME  : Tick Profiler
+ *  FILE         : tick_profiler.h
+ *  DESCRIPTION  : Public API for tracking task runtime using FreeRTOS tick hook.
+ *  AUTHOR       : Elham Karam
+ *  DATE CREATED : December 2025
+ ******************************************************************************/
+
 #ifndef TICK_PROFILER_H
 #define TICK_PROFILER_H
 
@@ -5,79 +13,81 @@
 extern "C" {
 #endif
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include <stdint.h>
-#include <stdbool.h>
+/******************************************************************************
+ *  INCLUDES
+ ******************************************************************************/
 
-/* ---------------- Configuration Defaults ----------------
- * You can override these macros in your build system or before including this header.
- */
+#include "FreeRTOS.h"   /* FreeRTOS base definitions */
+#include "task.h"       /* Task services */
+#include "queue.h"      /* Queue services */
+#include <stdint.h>     /* Fixed-width integer types */
+#include <stdbool.h>    /* Boolean type */
+
+/******************************************************************************
+ *  MACRO DEFINITIONS AND CONFIGURATIONS
+ ******************************************************************************/
+
+/* Maximum number of tasks that can be profiled */
 #ifndef TICK_PROFILER_MAX_TASKS
 #define TICK_PROFILER_MAX_TASKS    16U
 #endif
 
+/* Enables expired quantum queue support */
 #ifndef TICK_PROFILER_EXPIRED_QUEUE_ENABLED
 #define TICK_PROFILER_EXPIRED_QUEUE_ENABLED  1U
 #endif
 
+/* Length of the expired quantum queue */
 #ifndef TICK_PROFILER_EXPIRED_QUEUE_LENGTH
 #define TICK_PROFILER_EXPIRED_QUEUE_LENGTH   (TICK_PROFILER_MAX_TASKS * 2U)
 #endif
 
-/* Per-task accounting structure */
+/******************************************************************************
+ *  TYPE DEFINITIONS
+ ******************************************************************************/
+
+/* Structure holding per-task runtime statistics */
 typedef struct
 {
-    TaskHandle_t task;       /* NULL => empty slot */
-    uint32_t     run_ticks;  /* Accumulated ticks for current CPU burst */
-    uint32_t     quantum_ticks; /* Quantum configured for this task (0 => unset/disabled) */
+    TaskHandle_t task;        /* Associated FreeRTOS task */
+    uint32_t     run_ticks;   /* Total execution time in ticks */
+    uint32_t     quantum_ticks; /* Assigned execution quantum */
 } TickProfilerTaskInfo_t;
 
-/* ---------------- Public API ---------------- */
+/******************************************************************************
+ *  FUNCTION PROTOTYPES
+ ******************************************************************************/
 
-/* Initialize internal state and (optionally) create expired-task queue.
- * Call before vTaskStartScheduler().
- * Returns true on success, false on allocation failure (queue creation).
- */
+/* Initializes the tick profiler module */
 bool tickProfilerInit(void);
 
-/* Register a task so profiler can account it.
- * Call after xTaskCreate().
- * Returns false if already registered or table is full.
- */
+/* Registers a task for runtime profiling */
 bool setupTaskStats(TaskHandle_t task);
 
-/* Set a task quantum in ticks (must be > 0).
- * Returns false if task not registered or invalid input.
- */
+/* Assigns a time quantum to a task */
 bool setTaskQuantum(TaskHandle_t task, uint32_t quantumTicks);
 
-/* Get accumulated run ticks for a task since last reset.
- * Returns 0 if not found.
- */
+/* Retrieves the runtime of a task */
 uint32_t getTaskRuntime(TaskHandle_t task);
 
-/* Reset run_ticks for a task (scheduler typically calls this after handling expiry).
- * Returns false if task not found.
- */
+/* Resets the runtime counter of a task */
 bool resetTaskRuntime(TaskHandle_t task);
 
-/* Provide the scheduler-manager task handle so tick hook can notify it from ISR. */
+/* Sets the scheduler task handle for ISR notification */
 void tickProfilerSetSchedulerTaskHandle(TaskHandle_t schedulerHandle);
 
-/* If enabled, returns the queue used to send expired TaskHandle_t from ISR to scheduler.
- * Returns NULL if feature is disabled or queue not created.
- */
+/* Returns the queue containing expired tasks */
 QueueHandle_t tickProfilerGetExpiredQueue(void);
 
-/* FreeRTOS tick hook (requires configUSE_TICK_HOOK == 1).
- * Do NOT call directly.
- */
+/* FreeRTOS tick hook implementation */
 void vApplicationTickHook(void);
 
 #ifdef __cplusplus
 }
 #endif
+
+/******************************************************************************
+ *  END OF FILE
+ ******************************************************************************/
 
 #endif /* TICK_PROFILER_H */

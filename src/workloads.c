@@ -21,6 +21,8 @@
 /* Standard integer types */
 #include <stdint.h>
 
+volatile uint32_t g_interactive_work_counter = 0;
+volatile uint32_t g_cpu_work_counter = 0;
 /******************************************************************************
  *  FUNCTION DEFINITIONS
  ******************************************************************************/
@@ -56,7 +58,7 @@ void runInteractiveTask(void *pvParameters)
         {
             mathCalculation++;
         }
-
+        g_interactive_work_counter++;
         /* Simulate blocking behavior */
         simulateBlocking();
     }
@@ -74,7 +76,7 @@ void runInteractiveTask(void *pvParameters)
 void runCPUHeavyTask(void *pvParameters)
 {
     volatile uint32_t mathCalculation = 0;
-    const char *taskname = (char*) pvParameters;
+    const char *taskName = (char*) pvParameters;
 
     for (;;)
     {
@@ -88,6 +90,7 @@ void runCPUHeavyTask(void *pvParameters)
             {
                 mathCalculation++;
             }
+            g_cpu_work_counter ++;
         }
 
         /* Now yield */
