@@ -45,35 +45,6 @@ static uint32_t getQuantumForLevel(MLFQ_QueueLevel_t level)
  ******************************************************************************/
 
 /*
- * Description : Updates the scheduling level of a task.
- *               This includes updating the internal MLFQ table,
- *               adjusting the FreeRTOS priority, resetting runtime
- *               statistics, assigning a new time quantum, and
- *               reflecting the change using system LEDs.
- */
-void updateTaskPriority(TaskHandle_t task, MLFQ_QueueLevel_t newLevel)
-{
-    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
-    {
-        if (g_taskTable[table_index].task_handle == task)
-        {
-            g_taskTable[table_index].task_level = newLevel;
-
-            /* Update RTOS priority according to MLFQ level */
-            vTaskPrioritySet(task, MLFQ_TO_RTOS_LEVEL_SETTER(newLevel));
-
-            /* Reset runtime statistics and apply new quantum */
-            setTaskQuantum(task, getQuantumForLevel(newLevel));
-            resetTaskRuntime(task);
-
-            /* Visual indication of task level */
-            //setLEDColor(newLevel);
-            return;
-        }
-    }
-}
-
-/*
  * Description : Initializes the scheduler subsystem.
  *               Sets up the tick profiler and clears the
  *               internal task table entries.
@@ -124,6 +95,35 @@ void registerTask(TaskHandle_t taskHandle)
 
                 break;
             }
+        }
+    }
+}
+
+/*
+ * Description : Updates the scheduling level of a task.
+ *               This includes updating the internal MLFQ table,
+ *               adjusting the FreeRTOS priority, resetting runtime
+ *               statistics, assigning a new time quantum, and
+ *               reflecting the change using system LEDs.
+ */
+void updateTaskPriority(TaskHandle_t task, MLFQ_QueueLevel_t newLevel)
+{
+    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
+    {
+        if (g_taskTable[table_index].task_handle == task)
+        {
+            g_taskTable[table_index].task_level = newLevel;
+
+            /* Update RTOS priority according to MLFQ level */
+            vTaskPrioritySet(task, MLFQ_TO_RTOS_LEVEL_SETTER(newLevel));
+
+            /* Reset runtime statistics and apply new quantum */
+            setTaskQuantum(task, getQuantumForLevel(newLevel));
+            resetTaskRuntime(task);
+
+            /* Visual indication of task level */
+            setLEDColor(newLevel);
+            return;
         }
     }
 }
@@ -223,7 +223,7 @@ void schedulerTask(void *pvParameters)
         TickType_t xNow = xTaskGetTickCount();
         if ((xNow - xLastBoostTime) >= xBoostPeriod)
         {
-            //printQueueReport();
+            printQueueReport();
 
             performGlobalBoost();
 

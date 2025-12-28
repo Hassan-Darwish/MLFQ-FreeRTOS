@@ -78,12 +78,12 @@ typedef struct
 #define MLFQ_TO_RTOS_LEVEL_SETTER(level)        (MLFQ_TOP_PRIORITY_NUMBER - level)
 
 /* Periodic priority boost interval (milliseconds) */
-#define MLFQ_BOOST_PERIOD_MS                    1000U
+#define MLFQ_BOOST_PERIOD_MS                    3000U
 
 /* Time slice values assigned per queue level (ticks) */
-#define MLFQ_TIME_SLICE_HIGH                    10U
-#define MLFQ_TIME_SLICE_MEDIUM                  20U
-#define MLFQ_TIME_SLICE_LOW                     50U
+#define MLFQ_TIME_SLICE_HIGH                    20U
+#define MLFQ_TIME_SLICE_MEDIUM                  50U
+#define MLFQ_TIME_SLICE_LOW                     100U
 
 /* Generic wait duration used by scheduler logic */
 #define TICKS_TO_BE_WAITED                      (10U)
@@ -98,11 +98,6 @@ typedef struct
  */
 static uint32_t getQuantumForLevel(MLFQ_QueueLevel_t level);
 
-/*
- * Description : Updates a task’s MLFQ level and synchronizes its
- *               FreeRTOS priority and runtime statistics.
- */
-void updateTaskPriority(TaskHandle_t task, MLFQ_QueueLevel_t newLevel);
 
 /*
  * Description : Initializes the scheduler and underlying
@@ -115,6 +110,12 @@ void initScheduler(void);
  *               initial priority and quantum values.
  */
 void registerTask(TaskHandle_t task);
+
+/*
+ * Description : Updates a task’s MLFQ level and synchronizes its
+ *               FreeRTOS priority and runtime statistics.
+ */
+void updateTaskPriority(TaskHandle_t task, MLFQ_QueueLevel_t newLevel);
 
 /*
  * Description : Demotes a task after it exhausts its time quantum.

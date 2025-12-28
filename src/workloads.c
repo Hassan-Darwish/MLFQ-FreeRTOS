@@ -34,7 +34,7 @@ volatile uint32_t g_cpu_work_counter = 0;
 void simulateBlocking(void)
 {
     /* Yield CPU execution for one tick */
-    vTaskDelay(1);
+    vTaskDelay(5);
 }
 
 /*
@@ -54,7 +54,7 @@ void runInteractiveTask(void *pvParameters)
     for (;;)
     {
         /* Simulated short computation workload */
-        for (uint8_t task_loop = 0; task_loop < INTERACTIVE_TASK_TIME; task_loop++)
+        for (uint16_t task_loop = 0; task_loop < INTERACTIVE_TASK_TIME; task_loop++)
         {
             mathCalculation++;
         }
@@ -75,7 +75,7 @@ void runInteractiveTask(void *pvParameters)
 
 void runCPUHeavyTask(void *pvParameters)
 {
-    volatile uint32_t mathCalculation = 0;
+    volatile uint8_t mathCalculation = 0;
     const char *taskName = (char*) pvParameters;
 
     for (;;)
@@ -84,9 +84,9 @@ void runCPUHeavyTask(void *pvParameters)
          * 100 iterations * ~1ms = ~100ms of CPU time.
          * This ensures it breaks the 10ms limit AND the 20ms limit.
          */
-        for (uint32_t i = 0; i < 1000; i++) // <--- CHANGE THIS FROM 20 TO 100
+        for (uint16_t i = 0; i < 1000; i++) // <--- CHANGE THIS FROM 20 TO 100
         {
-            for (uint32_t task_loop = 0; task_loop < HEAVY_TASK_TIME; task_loop++)
+            for (uint16_t task_loop = 0; task_loop < HEAVY_TASK_TIME; task_loop++)
             {
                 mathCalculation++;
             }
