@@ -56,8 +56,8 @@ This MLFQ Scheduler solves that by:
 
 ### Visual Feedback (RGB LED)
 
-* **🔵 Blue:** High Priority (Interactive / New Tasks)
-* **🟢 Green:** Medium Priority
+* **🟢 Green:** High Priority (Interactive / New Tasks)
+* **🔵 Blue:** Medium Priority
 * **🔴 Red:** Low Priority (Background / CPU Heavy Tasks)
 
 ---
