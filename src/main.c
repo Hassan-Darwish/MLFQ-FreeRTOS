@@ -3,7 +3,7 @@
  * FILE         : main.c
  * DESCRIPTION  : Entry point for the MLFQ Scheduler project. Initializes
  * drivers, creates workload tasks, and starts the scheduler.
- * AUTHOR       : Hassan Darwish
+ * AUTHOR       : Amr Olama
  * DATE         : December 2025
  ******************************************************************************/
 
@@ -101,7 +101,7 @@ int main(void)
      */
     xTaskCreate(schedulerTask,
                 "Scheduler",
-                1024,                       /* Stack size increased for safe printing */
+                512,                       /* Stack size increased for safe printing */
                 NULL,
                 MLFQ_TOP_PRIORITY_NUMBER + 1, /* Highest priority in system */
                 &hSchedulerTask);

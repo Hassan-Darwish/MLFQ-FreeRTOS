@@ -17,7 +17,7 @@
 #define HEAVY_TASK_TIME         65535U
 
 /* Number of loop iterations used to simulate an interactive task */
-#define INTERACTIVE_TASK_TIME   10000U
+#define INTERACTIVE_TASK_TIME   9800U
 
 /******************************************************************************
  *  FUNCTION PROTOTYPES
