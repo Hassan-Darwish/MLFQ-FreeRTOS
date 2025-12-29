@@ -128,11 +128,6 @@ void checkForDemotion(uint8_t table_index);
 void performGlobalBoost(void);
 
 /*
- * Description : Promotes an interactive task to a higher priority queue.
- */
-void promoteInteractiveTask(TaskHandle_t task);
-
-/*
  * Description : Main scheduler task responsible for handling demotion,
  *               boosting, and reporting logic.
  */

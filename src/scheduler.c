@@ -166,27 +166,6 @@ void performGlobalBoost(void)
 }
 
 /*
- * Description : Promotes an interactive task to a higher
- *               priority queue to improve responsiveness.
- */
-void promoteInteractiveTask(TaskHandle_t task)
-{
-    for (uint8_t table_index = 0; table_index < TICK_PROFILER_MAX_TASKS; table_index++)
-    {
-        if (g_taskTable[table_index].task_handle == task)
-        {
-            if (g_taskTable[table_index].task_level != MLFQ_QUEUE_HIGH)
-            {
-                updateTaskPriority(
-                    g_taskTable[table_index].task_handle,
-                    (MLFQ_QueueLevel_t)
-                    (g_taskTable[table_index].task_level - 1));
-            }
-        }
-    }
-}
-
-/*
  * Description : Dedicated scheduler task.
  *               Handles task demotion events, periodic global
  *               priority boosts, and system monitoring reports.
