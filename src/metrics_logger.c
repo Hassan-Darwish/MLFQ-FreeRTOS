@@ -19,19 +19,6 @@
 static char g_logBuffer[LOG_BUFFER_SIZE];
 
 /*
- * Description : Computes latency for a given task.
- * Formula     : Start Time - Arrival Time
- */
-float calculateLatency(uint32_t arrivalTick, uint32_t startTick)
-{
-    if (startTick < arrivalTick) 
-    {
-        return 0.0f; // Handle potential overflow or invalid input
-    }
-    return (float)(startTick - arrivalTick);
-}
-
-/*
  * Description : Produces a formatted string for UART or report.
  * Format: [Name] | Runtime: [X] ticks | Level: [Y]
  */

@@ -25,11 +25,6 @@
  ******************************************************************************/
 
 /*
- * Description : Computes latency given arrival and start times.
- */
-float calculateLatency(uint32_t arrivalTick, uint32_t startTick);
-
-/*
  * Description : Formats a TaskStats struct into a readable string.
  * stats: The task statistics to format
  */
