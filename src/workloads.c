@@ -21,8 +21,6 @@
 /* Standard integer types */
 #include <stdint.h>
 
-volatile uint32_t g_interactive_work_counter = 0;
-volatile uint32_t g_cpu_work_counter = 0;
 /******************************************************************************
  *  FUNCTION DEFINITIONS
  ******************************************************************************/
@@ -58,7 +56,6 @@ void runInteractiveTask(void *pvParameters)
         {
             mathCalculation++;
         }
-        g_interactive_work_counter++;
         /* Simulate blocking behavior */
         simulateBlocking();
     }
@@ -69,28 +66,23 @@ void runInteractiveTask(void *pvParameters)
  *               long computations before yielding execution,
  *               simulating CPU-bound behavior.
  */
-/* workloads.c */
-
-/* workloads.c */
-
 void runCPUHeavyTask(void *pvParameters)
 {
+    /* Variable used to simulate computation */
     volatile uint8_t mathCalculation = 0;
+
+    /* Task name passed as parameter (unused except for identification) */
     const char *taskName = (char*) pvParameters;
 
+    /* Task execution loop */
     for (;;)
     {
-        /* INCREASED LOAD:
-         * 100 iterations * ~1ms = ~100ms of CPU time.
-         * This ensures it breaks the 10ms limit AND the 20ms limit.
-         */
-        for (uint16_t i = 0; i < 1000; i++) // <--- CHANGE THIS FROM 20 TO 100
+        for (uint16_t i = 0; i < 1000; i++)
         {
             for (uint16_t task_loop = 0; task_loop < HEAVY_TASK_TIME; task_loop++)
             {
                 mathCalculation++;
             }
-            g_cpu_work_counter ++;
         }
 
         /* Now yield */
