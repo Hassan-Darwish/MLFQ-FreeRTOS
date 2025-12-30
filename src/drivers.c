@@ -104,8 +104,8 @@ void sendLog(const char *message)
 
 /*
  * Description : Sets LED color based on MLFQ queue level.
- *               High    -> Blue LED
- *               Medium  -> Green LED
+ *               High    -> Green LED
+ *               Medium  -> Blue LED
  *               Low     -> Red LED
  *               Default -> All LEDs off
  */
