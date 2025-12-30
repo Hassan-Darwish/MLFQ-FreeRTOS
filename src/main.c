@@ -122,16 +122,4 @@ int main(void)
     }
 }
 
-void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
-{
-    /* If we get here, a task used too much stack. */
-    /* Disable interrupts to freeze system */
-    taskDISABLE_INTERRUPTS();
 
-    /* Try to print (might fail if UART stack is gone) */
-    sendLog("\n[CRITICAL] Stack Overflow detected in task: ");
-    sendLog(pcTaskName);
-    sendLog("\r\n");
-
-    for(;;);
-}
