@@ -14,6 +14,7 @@
 #include "tick_profiler.h"
 #include "MLFQConfig.h"
 
+#include "drivers.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -267,6 +268,10 @@ void vApplicationTickHook(void)
         g_taskTable[i].run_ticks = 0U;
     }
 #endif
+            if(!bTaskSwitched)
+            {
+                setLEDColor(MLFQ_NUMBER_QUEUES);
+            }
 
             /* Increment runtime counter */
             g_taskTable[i].run_ticks++;

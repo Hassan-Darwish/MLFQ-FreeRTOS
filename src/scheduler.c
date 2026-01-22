@@ -183,7 +183,9 @@ void schedulerTask(void *pvParameters)
 
     /* Global boost timing control */
     TickType_t xLastBoostTime = xTaskGetTickCount();
+    TickType_t xLastPrintTime = xTaskGetTickCount();
     const TickType_t xBoostPeriod = pdMS_TO_TICKS(MLFQ_BOOST_PERIOD_MS);
+    const TickType_t xPrintFrequency = pdMS_TO_TICKS(MLFQ_PRINT_FREQUENCY_MS);
 
     for (;;)
     {
@@ -199,7 +201,7 @@ void schedulerTask(void *pvParameters)
                 }
             }
         }
-
+#if (ENABLE_CPU_GAMING_SIMULATION == 0)
         /* 2. Periodic global boost and reporting */
         TickType_t xNow = xTaskGetTickCount();
         if ((xNow - xLastBoostTime) >= xBoostPeriod)
@@ -210,6 +212,19 @@ void schedulerTask(void *pvParameters)
 
             xLastBoostTime = xNow;
         }
+#elif (ENABLE_CPU_GAMING_SIMULATION == 1)
+        /* SCENARIO 2: Gaming Mode (No Boost, but we still need Slow Prints) */
+        TickType_t xNow = xTaskGetTickCount();
+
+        /* 2. NEW: Check the print timer independently */
+        if ((xNow - xLastPrintTime) >= xPrintFrequency)
+        {
+            printQueueReport();
+
+            xLastPrintTime = xNow; /* Reset the print timer */
+        }
+
+#endif
 
         /* 3. Scheduler idle delay */
         vTaskDelay(pdMS_TO_TICKS(10));
