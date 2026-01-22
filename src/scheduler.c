@@ -11,6 +11,8 @@
  *  INCLUDES
  ******************************************************************************/
 #include "scheduler.h"
+#include "MLFQConfig.h"
+
 #include "metrics_logger.h"
 #include "drivers.h"
 #include <stdlib.h>
@@ -33,10 +35,10 @@ static MLFQ_TCB_t g_taskTable[TICK_PROFILER_MAX_TASKS];
 static uint32_t getQuantumForLevel(MLFQ_QueueLevel_t level)
 {
     switch(level) {
-        case MLFQ_QUEUE_HIGH:   return MLFQ_TIME_SLICE_HIGH;
-        case MLFQ_QUEUE_MEDIUM: return MLFQ_TIME_SLICE_MEDIUM;
-        case MLFQ_QUEUE_LOW:    return MLFQ_TIME_SLICE_LOW;
-        default:                return MLFQ_TIME_SLICE_LOW;
+        case MLFQ_QUEUE_HIGH:   return pdMS_TO_TICKS(MLFQ_TIME_SLICE_HIGH);
+        case MLFQ_QUEUE_MEDIUM: return pdMS_TO_TICKS(MLFQ_TIME_SLICE_MEDIUM);
+        case MLFQ_QUEUE_LOW:    return pdMS_TO_TICKS(MLFQ_TIME_SLICE_LOW);
+        default:                return pdMS_TO_TICKS(MLFQ_TIME_SLICE_LOW);
     }
 }
 
@@ -91,7 +93,7 @@ void registerTask(TaskHandle_t taskHandle)
                                  MLFQ_TO_RTOS_LEVEL_SETTER(MLFQ_QUEUE_HIGH));
 
                 /* Assign initial quantum */
-                setTaskQuantum(taskHandle, MLFQ_TIME_SLICE_HIGH);
+                setTaskQuantum(taskHandle, pdMS_TO_TICKS(MLFQ_TIME_SLICE_HIGH));
 
                 break;
             }

@@ -106,6 +106,7 @@ PRIORITY THAN THIS! (higher priorities are lower numeric values. */
 /******************************************************************************/
 #define INCLUDE_vTaskDelay          1
 #define INCLUDE_vTaskPrioritySet    1
+#define INCLUDE_vTaskDelete     1
 
 
 #endif /* FREERTOS_CONFIG_H */

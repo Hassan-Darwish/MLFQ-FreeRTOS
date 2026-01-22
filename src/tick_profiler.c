@@ -12,6 +12,7 @@
  *  INCLUDES
  ******************************************************************************/
 #include "tick_profiler.h"
+#include "MLFQConfig.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -248,12 +249,24 @@ void vApplicationTickHook(void)
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     TaskHandle_t current = xTaskGetCurrentTaskHandle();
 
+    static TaskHandle_t xLastTaskHandle = NULL;
+
     if (current == NULL) {
         return;
     }
 
+    bool bTaskSwitched = (current == xLastTaskHandle);
+    xLastTaskHandle = current;
+
     for (uint32_t i = 0U; i < TICK_PROFILER_MAX_TASKS; ++i) {
         if (g_taskTable[i].task == current) {
+
+#if (ENABLE_CPU_GAMING_SIMULATION == 1U)
+    if (!bTaskSwitched)
+    {
+        g_taskTable[i].run_ticks = 0U;
+    }
+#endif
 
             /* Increment runtime counter */
             g_taskTable[i].run_ticks++;

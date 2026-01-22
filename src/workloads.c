@@ -12,6 +12,7 @@
  ******************************************************************************/
 /* Workload task declarations */
 #include "workloads.h"
+#include "MLFQConfig.h"
 
 /* FreeRTOS task management */
 #include "FreeRTOS.h"
@@ -52,7 +53,7 @@ void runInteractiveTask(void *pvParameters)
     for (;;)
     {
         /* Simulated short computation workload */
-        for (uint16_t task_loop = 0; task_loop < INTERACTIVE_TASK_TIME; task_loop++)
+        for (uint32_t task_loop = 0; task_loop < INTERACTIVE_TASK_TIME; task_loop++)
         {
             mathCalculation++;
         }
@@ -77,12 +78,9 @@ void runCPUHeavyTask(void *pvParameters)
     /* Task execution loop */
     for (;;)
     {
-        for (uint16_t i = 0; i < 1000; i++)
+        for (uint32_t i = 0; i < HEAVY_TASK_TIME; i++)
         {
-            for (uint16_t task_loop = 0; task_loop < HEAVY_TASK_TIME; task_loop++)
-            {
-                mathCalculation++;
-            }
+            mathCalculation++;
         }
 
         /* Now yield */

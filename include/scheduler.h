@@ -77,17 +77,6 @@ typedef struct
  */
 #define MLFQ_TO_RTOS_LEVEL_SETTER(level)        (MLFQ_TOP_PRIORITY_NUMBER - level)
 
-/* Periodic priority boost interval (milliseconds) */
-#define MLFQ_BOOST_PERIOD_MS                    3000U
-
-/* Time slice values assigned per queue level (ticks) */
-#define MLFQ_TIME_SLICE_HIGH                    20U
-#define MLFQ_TIME_SLICE_MEDIUM                  50U
-#define MLFQ_TIME_SLICE_LOW                     100U
-
-/* Generic wait duration used by scheduler logic */
-#define TICKS_TO_BE_WAITED                      (10U)
-
 /******************************************************************************
  *  FUNCTION PROTOTYPES
  ******************************************************************************/

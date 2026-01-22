@@ -1,142 +1,77 @@
 /******************************************************************************
+ * MODULE NAME  : Main Application (Sequenced Start)
  * FILE         : main.c
- * DESCRIPTION  : Test Runner for MLFQ vs Standard Scheduler A/B Testing.
- * Outputs throughput data via UART in CSV format.
  ******************************************************************************/
 
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-/* FreeRTOS Includes */
 #include "FreeRTOS.h"
+#include "MLFQConfig.h"
 #include "task.h"
+#include "drivers.h"
+#include "scheduler.h"
+#include "workloads.h"
+#include "metrics_logger.h"
 
-/* Project Includes */
-#include "scheduler.h"    // MLFQ Logic
-#include "workloads.h"    // CPU Heavy & Interactive Tasks
-#include "test_config.h"  // Switches between Test Modes (0 or 1)
-#include "drivers.h"      // Tiva-C UART & GPIO Drivers
-
-/* Task Handles */
-TaskHandle_t xHeavyHandle = NULL;
-TaskHandle_t xInteractHandle = NULL;
+/* Global Handles */
+TaskHandle_t hTask1_Interactive = NULL;
+TaskHandle_t hTask2_Heavy       = NULL;
+TaskHandle_t hTask3_Heavy       = NULL;
+TaskHandle_t hTask4_Interactive = NULL;
 TaskHandle_t hSchedulerTask     = NULL;
 
-
-/* * MONITOR TASK
- * Description : Runs every 1 second. Calculates the "Loop Count" (Throughput)
- * of the other tasks and sends a CSV line over UART.
- * * CSV Format  : Time(ms), TestMode, CpuHeavy_Ops/Sec, Interactive_Ops/Sec
+/* * SCENARIO LOADER TASK
+ * This task acts like a "Director". It wakes up periodically to
+ * launch new tasks, simulating users opening apps at different times.
  */
-void vMonitorTask(void *pvParameters)
+void vScenarioLoader(void *pvParameters)
 {
-    /* Access global counters from workloads.c */
-    extern volatile uint32_t g_cpu_work_counter;
-    extern volatile uint32_t g_interactive_work_counter;
+    vTaskDelay(pdMS_TO_TICKS(HEAVY_TASK_ONE_ARRIVAL_TIME));
 
-    static uint32_t last_cpu_count = 0;
-    static uint32_t last_inter_count = 0;
-    char buffer[128];
+    xTaskCreate(runCPUHeavyTask, "Heavy_2", 256, (void*)"Heavy_2", MLFQ_TOP_PRIORITY_NUMBER, &hTask2_Heavy);
+    registerTask(hTask2_Heavy);
 
-    /* Send CSV Header for Excel/Python */
-    sendLog("\r\n--- TEST STARTED ---\r\n");
-    sendLog("Time_MS, Mode, Heavy_Ops, Inter_Ops\r\n");
+    vTaskDelay(pdMS_TO_TICKS(HEAVY_TASK_TWO_ARRIVAL_TIME));
 
-    for(;;)
-    {
-        /* Wait 1 second */
-        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        /* Snapshot current counters */
-        uint32_t current_cpu = g_cpu_work_counter;
-        uint32_t current_inter = g_interactive_work_counter;
+    xTaskCreate(runCPUHeavyTask, "Heavy_3", 256, (void*)"Heavy_3", MLFQ_TOP_PRIORITY_NUMBER, &hTask3_Heavy);
+    registerTask(hTask3_Heavy);
 
-        /* Calculate delta (Operations per Second) */
-        uint32_t cpu_speed = (current_cpu - last_cpu_count);
-        uint32_t inter_speed = (current_inter - last_inter_count);
 
-        TickType_t now = xTaskGetTickCount();
+    vTaskDelay(pdMS_TO_TICKS(INTERACTIVE_TASK_ONE_ARRIVAL_TIME));
 
-        /* Format Data: Time, Mode, CPU_Speed, User_Speed */
-        /* Note: TEST_MODE comes from test_config.h */
-        snprintf(buffer, sizeof(buffer), "%lu, %d, %lu, %lu\r\n",
-                 now, TEST_MODE, cpu_speed, inter_speed);
 
-        /* Send to PC via UART */
-        sendLog(buffer);
+    xTaskCreate(runInteractiveTask, "Interact_1", 256, (void*)"Interact_1", MLFQ_TOP_PRIORITY_NUMBER, &hTask1_Interactive);
+    registerTask(hTask1_Interactive);
 
-        #if (TEST_MODE == 1)
-             /* Optional: If in MLFQ mode, you can also print the queue report
-                to see tasks moving between queues. */
-             // printQueueReport();
-        #endif
+    vTaskDelay(pdMS_TO_TICKS(INTERACTIVE_TASK_TWO_ARRIVAL_TIME));
 
-        /* Update history */
-        last_cpu_count = current_cpu;
-        last_inter_count = current_inter;
-    }
+
+    xTaskCreate(runInteractiveTask, "Interact_4", 256, (void*)"Interact_4", MLFQ_TOP_PRIORITY_NUMBER, &hTask4_Interactive);
+    registerTask(hTask4_Interactive);
+
+
+    vTaskDelete(NULL);
 }
 
-/*
- * MAIN FUNCTION
- * Entry point for the Test Runner.
- */
 int main(void)
 {
-    /* 1. Initialize Tiva-C Hardware */
     initUART();
     initGPIO();
-
-    /* 2. Initialize Scheduler Internal Structures */
     initScheduler();
 
-    /* 3. Create the Monitor Task (The Observer) */
-    /* Priority 5 ensures it always runs to print stats, regardless of CPU load */
-    xTaskCreate(vMonitorTask, "Monitor", 1024, NULL, 5, NULL);
+    sendLog("\n\n************************************************\r\n");
+    sendLog("* MLFQ SEQUENCED START DEMO                    *\r\n");
+    sendLog("************************************************\r\n");
 
-    /* 4. Configure the Scheduler based on Test Mode */
-    #if (TEST_MODE == 1)
-        /* ---------------------------------------------------------
-         * MODE: MLFQ SCHEDULER (Experimental)
-         * --------------------------------------------------------- */
-        sendLog("[INFO] System Mode: MLFQ (Dynamic Priority)\r\n");
+    /* 1. Create the MLFQ Scheduler Manager (Priority 6) */
+    xTaskCreate(schedulerTask, "Scheduler", 512, NULL, MLFQ_TOP_PRIORITY_NUMBER + 1, &hSchedulerTask);
 
-        /* Create the Supervisor Task (The MLFQ Manager) */
-        xTaskCreate(schedulerTask,
-                    "Scheduler",
-                    1024,                       /* Stack size increased for safe printing */
-                    NULL,
-                    MLFQ_TOP_PRIORITY_NUMBER + 1, /* Highest priority in system */
-                    &hSchedulerTask);
-        /* Create Workloads */
-        /* 256 is plenty for these simple tasks */
-        xTaskCreate(runCPUHeavyTask, "Hog", 256, "Hog", 4, &xHeavyHandle);
-        xTaskCreate(runInteractiveTask, "User", 256, "User", 4, &xInteractHandle);
+    /* 2. Create the Scenario Loader (Priority 7 - Highest)
+     * We give it the highest priority so it runs immediately to spawn the first task.
+     */
+    xTaskCreate(vScenarioLoader, "Loader", 512, NULL, MLFQ_TOP_PRIORITY_NUMBER + 2, NULL);
 
-        if (xHeavyHandle != NULL) {
-            registerTask(xHeavyHandle);
-            registerTask(xInteractHandle);
-        }
-
-
-    #else
-        /* ---------------------------------------------------------
-         * MODE: STANDARD FREE RTOS (Control Group)
-         * --------------------------------------------------------- */
-        sendLog("[INFO] System Mode: STANDARD (Round Robin)\r\n");
-
-        /* Create Workloads at EQUAL Priority (4) to simulate contention */
-        xTaskCreate(runCPUHeavyTask, "Hog", 1024, "Hog", 4, &xHeavyHandle);
-        xTaskCreate(runInteractiveTask, "User", 1024, "User", 4, &xInteractHandle);
-
-        /* DO NOT Register them. Standard FreeRTOS handles them naturally. */
-    #endif
-
-    /* 5. Start the Kernel */
-    sendLog("[INFO] Starting Scheduler...\r\n");
+    sendLog("[System] Starting Kernel...\r\n");
     vTaskStartScheduler();
 
-    /* Should never reach here */
-    while(1);
+    while (1) {}
 }
