@@ -34,6 +34,7 @@ static QueueHandle_t g_expiredQueue = NULL;
 
 /* Handle of the scheduler task to be notified from ISR */
 static TaskHandle_t g_schedulerTaskHandle = NULL;
+volatile TaskHandle_t g_lastActiveTask = NULL;
 
 /******************************************************************************
  *  STATIC (PRIVATE) FUNCTION DEFINITIONS
@@ -250,29 +251,30 @@ void vApplicationTickHook(void)
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     TaskHandle_t current = xTaskGetCurrentTaskHandle();
 
+
+    /* Ignore the Scheduler Task itself so we don't overwrite the "User" task */
+    if (current != g_schedulerTaskHandle && current != xTaskGetIdleTaskHandle())
+    {
+        g_lastActiveTask = current;
+    }
     static TaskHandle_t xLastTaskHandle = NULL;
 
     if (current == NULL) {
         return;
     }
 
-    bool bTaskSwitched = (current == xLastTaskHandle);
+    bool bTaskSwitched = (current != xLastTaskHandle);
     xLastTaskHandle = current;
 
     for (uint32_t i = 0U; i < TICK_PROFILER_MAX_TASKS; ++i) {
         if (g_taskTable[i].task == current) {
 
 #if (ENABLE_CPU_GAMING_SIMULATION == 1U)
-    if (!bTaskSwitched)
+    if (bTaskSwitched)
     {
         g_taskTable[i].run_ticks = 0U;
     }
 #endif
-            if(!bTaskSwitched)
-            {
-                setLEDColor(MLFQ_NUMBER_QUEUES);
-            }
-
             /* Increment runtime counter */
             g_taskTable[i].run_ticks++;
 

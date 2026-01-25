@@ -45,6 +45,7 @@ extern "C" {
 /******************************************************************************
  *  TYPE DEFINITIONS
  ******************************************************************************/
+extern volatile TaskHandle_t g_lastActiveTask;
 
 /* Structure holding per-task runtime statistics */
 typedef struct

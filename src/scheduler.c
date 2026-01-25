@@ -84,6 +84,8 @@ void registerTask(TaskHandle_t taskHandle)
             }
             else
             {
+                setLEDColor(MLFQ_QUEUE_HIGH);
+
                 g_taskTable[table_index].task_handle = taskHandle;
                 g_taskTable[table_index].task_level = MLFQ_QUEUE_HIGH;
                 g_taskTable[table_index].arrival_tick = xTaskGetTickCount();
@@ -94,6 +96,7 @@ void registerTask(TaskHandle_t taskHandle)
 
                 /* Assign initial quantum */
                 setTaskQuantum(taskHandle, pdMS_TO_TICKS(MLFQ_TIME_SLICE_HIGH));
+
 
                 break;
             }
@@ -212,6 +215,26 @@ void schedulerTask(void *pvParameters)
 
             xLastBoostTime = xNow;
         }
+         /* 2. NEW: Check the print timer independently */
+         if ((xNow - xLastPrintTime) >= xPrintFrequency)
+         {
+             printQueueReport();
+
+             xLastPrintTime = xNow; /* Reset the print timer */
+         }
+         if (g_lastActiveTask != NULL)
+         {
+             for (uint8_t i = 0; i < TICK_PROFILER_MAX_TASKS; i++)
+             {
+                 /* Find the task in our MLFQ table */
+                 if (g_taskTable[i].task_handle == g_lastActiveTask)
+                 {
+                     /* Found it! Set the LED based on its level */
+                     setLEDColor(g_taskTable[i].task_level);
+                     break;
+                 }
+             }
+         }
 #elif (ENABLE_CPU_GAMING_SIMULATION == 1)
         /* SCENARIO 2: Gaming Mode (No Boost, but we still need Slow Prints) */
         TickType_t xNow = xTaskGetTickCount();

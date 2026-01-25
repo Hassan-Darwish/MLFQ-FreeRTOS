@@ -7,7 +7,7 @@
  * 2: "The Exploit"   - Gaming ON. Heavy tasks cheat and stay Green/Blue.
  * 3: "Stress Test"   - Fast dynamics, frequent boosts, gaming OFF.
  * ========================================================================== */
-#define TEST_SCENARIO       2
+#define TEST_SCENARIO       1
 
 /* ==========================================================================
  * COMMON CALIBRATION
@@ -23,21 +23,21 @@
  * ========================================================================== */
 #if (TEST_SCENARIO == 1)
 
-    /* CRITICAL: Gaming is OFF. Scheduler remembers history even after switches. */
     #define ENABLE_CPU_GAMING_SIMULATION        0
 
-    #define HEAVY_TASK_ONE_ARRIVAL_TIME         1000U
-    #define HEAVY_TASK_TWO_ARRIVAL_TIME         2000U
-    #define INTERACTIVE_TASK_ONE_ARRIVAL_TIME   4000U
-    #define INTERACTIVE_TASK_TWO_ARRIVAL_TIME   6000U
+    #define HEAVY_TASK_ONE_ARRIVAL_TIME         0U
+    #define HEAVY_TASK_TWO_ARRIVAL_TIME         5000U
+    #define INTERACTIVE_TASK_ONE_ARRIVAL_TIME   7000U
+    #define INTERACTIVE_TASK_TWO_ARRIVAL_TIME   10000U
 
-    #define INTERACTIVE_TASK_RUNTIME_MS         50UL    // Pure Interactive
-    #define HEAVY_TASK_RUNTIME_MS               9000UL  // Pure Heavy
+    #define INTERACTIVE_TASK_RUNTIME_MS         100UL
+    #define HEAVY_TASK_RUNTIME_MS               30000UL
 
-    #define MLFQ_TIME_SLICE_HIGH                1000U
-    #define MLFQ_TIME_SLICE_MEDIUM              1500U
-    #define MLFQ_TIME_SLICE_LOW                 2500U
-    #define MLFQ_BOOST_PERIOD_MS                2000U
+    #define MLFQ_TIME_SLICE_HIGH                5000U    // Very fast drop
+    #define MLFQ_TIME_SLICE_MEDIUM              3000U
+    #define MLFQ_TIME_SLICE_LOW                 2000U
+    #define MLFQ_BOOST_PERIOD_MS                3600000U   // Frequent Boosts
+    #define MLFQ_PRINT_FREQUENCY_MS             2000U
 
 /* ==========================================================================
  * SCENARIO 2: "The Hacker" (Gaming Simulation)
@@ -54,8 +54,8 @@
     #define INTERACTIVE_TASK_ONE_ARRIVAL_TIME   7000U
     #define INTERACTIVE_TASK_TWO_ARRIVAL_TIME   10000U
 
-    #define INTERACTIVE_TASK_RUNTIME_MS         50UL
-    #define HEAVY_TASK_RUNTIME_MS               5000UL
+    #define INTERACTIVE_TASK_RUNTIME_MS         50U
+    #define HEAVY_TASK_RUNTIME_MS               5000U
 
     /* Standard slices, but the Gaming Logic will bypass them */
     #define MLFQ_TIME_SLICE_HIGH                1000U
@@ -71,18 +71,19 @@
 
     #define ENABLE_CPU_GAMING_SIMULATION        0
 
-    #define HEAVY_TASK_ONE_ARRIVAL_TIME         100U
-    #define HEAVY_TASK_TWO_ARRIVAL_TIME         100U
-    #define INTERACTIVE_TASK_ONE_ARRIVAL_TIME   100U
-    #define INTERACTIVE_TASK_TWO_ARRIVAL_TIME   100U
+    #define HEAVY_TASK_ONE_ARRIVAL_TIME         0U
+    #define HEAVY_TASK_TWO_ARRIVAL_TIME         5000U
+    #define INTERACTIVE_TASK_ONE_ARRIVAL_TIME   7000U
+    #define INTERACTIVE_TASK_TWO_ARRIVAL_TIME   10000U
 
     #define INTERACTIVE_TASK_RUNTIME_MS         100UL
-    #define HEAVY_TASK_RUNTIME_MS               2000UL
+    #define HEAVY_TASK_RUNTIME_MS               30000UL
 
-    #define MLFQ_TIME_SLICE_HIGH                200U    // Very fast drop
-    #define MLFQ_TIME_SLICE_MEDIUM              400U
-    #define MLFQ_TIME_SLICE_LOW                 600U
-    #define MLFQ_BOOST_PERIOD_MS                3000U   // Frequent Boosts
+    #define MLFQ_TIME_SLICE_HIGH                5000U    // Very fast drop
+    #define MLFQ_TIME_SLICE_MEDIUM              3000U
+    #define MLFQ_TIME_SLICE_LOW                 2000U
+    #define MLFQ_BOOST_PERIOD_MS                30000U   // Frequent Boosts
+    #define MLFQ_PRINT_FREQUENCY_MS             4000U
 
 #endif
 
